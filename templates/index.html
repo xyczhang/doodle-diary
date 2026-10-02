@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A tiny daily journal where every memory gets a hand-drawn cover.">
+    <title>My Little Doodle Diary</title>
+    <link rel="icon" href="/favicon.svg">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <div class="background-friends" aria-hidden="true">
+        <span class="bg-friend friend-one"><span class="mood-face mood-face-0"></span></span>
+        <span class="bg-friend friend-two"><span class="mood-face mood-face-2"></span></span>
+        <span class="bg-friend friend-three"><span class="mood-face mood-face-4"></span></span>
+        <span class="bg-friend friend-four"><span class="mood-face mood-face-1"></span></span>
+      </div>
+
+      <!-- Edit the main website wording in this file. -->
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Doodle Diary home">
+          <span class="brand-mark"><span class="mood-face mood-face-1"></span></span>
+          <span>little doodle</span>
+        </a>
+        <label class="search-wrap">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search-input" type="search" placeholder="Search your days" aria-label="Search entries">
+        </label>
+        <button id="new-entry-button" class="new-button" type="button"><span class="icon-text">+</span> New entry</button>
+      </header>
+
+      <section class="intro">
+        <div>
+          <p class="eyebrow"><span aria-hidden="true">□</span> your days, drawn by hand</p>
+          <h1>my little<br>doodle diary</h1>
+        </div>
+        <div class="intro-side">
+          <span class="candy-label">little moments · big feelings</span>
+          <p class="intro-note">Each day gets a page—and a doodle only you could make.</p>
+        </div>
+      </section>
+
+      <section class="journal-section" aria-live="polite">
+        <div class="section-heading">
+          <h2 id="section-title">Recent pages</h2>
+          <span id="entry-count">0 entries</span>
+        </div>
+        <div id="entry-grid" class="entry-grid loading">
+          <div class="empty-state">Opening your journal…</div>
+        </div>
+      </section>
+
+      <div id="editor-modal" class="modal-backdrop" role="presentation" hidden>
+        <section id="editor-dialog" class="editor" role="dialog" aria-modal="true" aria-label="New journal entry">
+          <button id="close-editor" class="close-button" type="button" aria-label="Close editor">×</button>
+          <form id="entry-form">
+            <div class="editor-head">
+              <div>
+                <p id="editor-eyebrow" class="eyebrow editor-eyebrow">A new page</p>
+                <h2 id="editor-heading">How did today feel?</h2>
+              </div>
+              <input id="entry-date" type="date" aria-label="Entry date" required>
+            </div>
+
+            <div class="mood-section">
+              <span class="field-label">Today I feel…</span>
+              <div class="mood-options" aria-label="Choose today's mood">
+                <button class="mood-option" type="button" data-mood="joyful" aria-pressed="false"><span class="mood-face mood-face-0"></span>Joyful</button>
+                <button class="mood-option" type="button" data-mood="good" aria-pressed="false"><span class="mood-face mood-face-1"></span>Good</button>
+                <button class="mood-option" type="button" data-mood="okay" aria-pressed="true"><span class="mood-face mood-face-2"></span>Okay</button>
+                <button class="mood-option" type="button" data-mood="tired" aria-pressed="false"><span class="mood-face mood-face-3"></span>Tired</button>
+                <button class="mood-option" type="button" data-mood="blue" aria-pressed="false"><span class="mood-face mood-face-4"></span>Blue</button>
+              </div>
+            </div>
+
+            <div class="editor-grid">
+              <div>
+                <label class="field-label" for="doodle-canvas">1. Doodle your cover</label>
+                <div class="doodle-pad">
+                  <canvas id="doodle-canvas" width="640" height="400" aria-label="Draw your journal cover"></canvas>
+                  <div id="draw-hint" class="draw-hint"><span aria-hidden="true">☆</span> Draw what today felt like</div>
+                  <div class="tools" aria-label="Drawing tools">
+                    <div class="swatches" aria-label="Pen colors">
+                      <button class="swatch active" type="button" data-color="#3b2438" style="background:#3b2438" aria-label="Use dark purple pen"></button>
+                      <button class="swatch" type="button" data-color="#cc4147" style="background:#cc4147" aria-label="Use red pen"></button>
+                      <button class="swatch" type="button" data-color="#e79032" style="background:#e79032" aria-label="Use orange pen"></button>
+                      <button class="swatch" type="button" data-color="#5f8550" style="background:#5f8550" aria-label="Use green pen"></button>
+                      <button class="swatch" type="button" data-color="#5c8f91" style="background:#5c8f91" aria-label="Use teal pen"></button>
+                      <button class="swatch" type="button" data-color="#765185" style="background:#765185" aria-label="Use purple pen"></button>
+                    </div>
+                    <div class="sizes" aria-label="Pen sizes">
+                      <button class="size" type="button" data-width="3" aria-label="Small pen"><span style="width:6px;height:6px"></span></button>
+                      <button class="size active" type="button" data-width="6" aria-label="Medium pen"><span style="width:9px;height:9px"></span></button>
+                      <button class="size" type="button" data-width="11" aria-label="Large pen"><span style="width:14px;height:14px"></span></button>
+                    </div>
+                    <button id="undo-button" class="tool-button" type="button" disabled>↶ Undo</button>
+                    <button id="clear-button" class="tool-button" type="button" disabled>Clear</button>
+                  </div>
+                </div>
+
+                <label class="field-label gratitude-label" for="gratitude">What I’m grateful for today</label>
+                <textarea id="gratitude" class="gratitude-input" placeholder="A tiny thing, a person, a moment…" maxlength="500"></textarea>
+              </div>
+
+              <div class="writing-fields">
+                <label class="field-label" for="entry-title">2. Give today a title</label>
+                <input id="entry-title" class="title-input" placeholder="The long way home" maxlength="80" required>
+                <label class="field-label" for="entry-content">3. Tell the story</label>
+                <textarea id="entry-content" placeholder="What do you want to remember?" maxlength="5000" required></textarea>
+              </div>
+            </div>
+
+            <div class="editor-actions">
+              <button id="delete-button" class="delete-button" type="button" hidden>Delete</button>
+              <span class="spacer"></span>
+              <button id="cancel-button" class="cancel-button" type="button">Cancel</button>
+              <button id="save-button" class="save-button" type="submit">Save entry</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <button id="toast" class="toast" type="button" aria-live="polite" hidden>
+        <span id="toast-message" class="toast-message"></span><span aria-hidden="true">×</span>
+      </button>
+    </main>
+  </body>
+</html>
