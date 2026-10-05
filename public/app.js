@@ -12,6 +12,8 @@ const state = {
   width: 6,
   drawing: false,
   toastTimer: null,
+  authMode: "login",
+  user: null,
 };
 
 const elements = {
@@ -44,6 +46,20 @@ const elements = {
   summaryOutput: document.querySelector("#summary-output"),
   summaryMeta: document.querySelector("#summary-meta"),
   summaryText: document.querySelector("#summary-text"),
+  authButton: document.querySelector("#auth-button"),
+  authModal: document.querySelector("#auth-modal"),
+  closeAuth: document.querySelector("#close-auth"),
+  authSignedOut: document.querySelector("#auth-signed-out"),
+  authSignedIn: document.querySelector("#auth-signed-in"),
+  authHeading: document.querySelector("#auth-heading"),
+  authIntro: document.querySelector("#auth-intro"),
+  authForm: document.querySelector("#auth-form"),
+  authEmail: document.querySelector("#auth-email"),
+  authPassword: document.querySelector("#auth-password"),
+  authSubmit: document.querySelector("#auth-submit"),
+  authSwitch: document.querySelector("#auth-switch"),
+  accountEmail: document.querySelector("#account-email"),
+  logoutButton: document.querySelector("#logout-button"),
 };
 
 function makeUuid() {
@@ -160,6 +176,93 @@ function showToast(message) {
   state.toastTimer = setTimeout(() => {
     elements.toast.hidden = true;
   }, 4500);
+}
+
+function updateAuthDisplay() {
+  const signedIn = Boolean(state.user);
+  elements.authButton.textContent = signedIn ? "Account" : "Sign in";
+  elements.authButton.title = signedIn ? `Signed in as ${state.user.email}` : "Sign in or create an account";
+  elements.authSignedOut.hidden = signedIn;
+  elements.authSignedIn.hidden = !signedIn;
+  elements.accountEmail.textContent = signedIn ? state.user.email : "";
+}
+
+function setAuthMode(mode) {
+  state.authMode = mode === "signup" ? "signup" : "login";
+  const creating = state.authMode === "signup";
+  elements.authHeading.textContent = creating ? "Make your diary yours" : "Welcome back";
+  elements.authIntro.textContent = creating
+    ? "Create an account so your pages follow you to any browser or device."
+    : "Sign in to find your diary on any browser or device.";
+  elements.authSubmit.textContent = creating ? "Create account" : "Sign in";
+  elements.authSwitch.textContent = creating ? "Already have an account? Sign in" : "New here? Create an account";
+  elements.authPassword.autocomplete = creating ? "new-password" : "current-password";
+}
+
+function openAuth() {
+  updateAuthDisplay();
+  elements.authModal.hidden = false;
+  document.body.classList.add("modal-open");
+  if (!state.user) {
+    setAuthMode("login");
+    setTimeout(() => elements.authEmail.focus(), 50);
+  }
+}
+
+function closeAuth() {
+  elements.authModal.hidden = true;
+  elements.authForm.reset();
+  document.body.classList.remove("modal-open");
+}
+
+async function loadAuth() {
+  try {
+    const data = await api("/api/auth/status");
+    state.user = data.signedIn ? data.user : null;
+    updateAuthDisplay();
+  } catch {
+    state.user = null;
+    updateAuthDisplay();
+  }
+}
+
+async function submitAuth(event) {
+  event.preventDefault();
+  elements.authSubmit.disabled = true;
+  elements.authSubmit.textContent = state.authMode === "signup" ? "Creating…" : "Signing in…";
+  try {
+    const data = await api(`/api/auth/${state.authMode}`, {
+      method: "POST",
+      body: JSON.stringify({
+        email: elements.authEmail.value,
+        password: elements.authPassword.value,
+      }),
+    });
+    state.user = data.user;
+    updateAuthDisplay();
+    await loadEntries();
+    closeAuth();
+    const moved = Number(data.movedEntries || 0);
+    showToast(moved ? `Signed in. ${moved} saved ${moved === 1 ? "page" : "pages"} joined your account.` : "Signed in. Your diary will remember you.");
+  } catch (error) {
+    showToast(error.message);
+    setAuthMode(state.authMode);
+  } finally {
+    elements.authSubmit.disabled = false;
+  }
+}
+
+async function logout() {
+  try {
+    await api("/api/auth/logout", { method: "POST" });
+    state.user = null;
+    updateAuthDisplay();
+    await loadEntries();
+    closeAuth();
+    showToast("Signed out. Sign in again anytime to see your saved pages.");
+  } catch (error) {
+    showToast(error.message);
+  }
 }
 
 function closeEditor() {
@@ -452,6 +555,13 @@ elements.closeEditor.addEventListener("click", closeEditor);
 elements.cancel.addEventListener("click", closeEditor);
 elements.form.addEventListener("submit", saveEntry);
 elements.deleteButton.addEventListener("click", deleteEntry);
+elements.authButton.addEventListener("click", openAuth);
+elements.closeAuth.addEventListener("click", closeAuth);
+elements.authForm.addEventListener("submit", submitAuth);
+elements.authSwitch.addEventListener("click", () => {
+  setAuthMode(state.authMode === "login" ? "signup" : "login");
+});
+elements.logoutButton.addEventListener("click", logout);
 elements.summaryButton.addEventListener("click", makeWeeklySummary);
 elements.summaryWeek.addEventListener("change", () => {
   elements.summaryOutput.hidden = true;
@@ -463,11 +573,16 @@ elements.toast.addEventListener("click", () => {
 elements.modal.addEventListener("pointerdown", (event) => {
   if (event.target === elements.modal) closeEditor();
 });
+elements.authModal.addEventListener("pointerdown", (event) => {
+  if (event.target === elements.authModal) closeAuth();
+});
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !elements.modal.hidden) closeEditor();
+  if (event.key === "Escape" && !elements.authModal.hidden) closeAuth();
 });
 
 elements.entryDate.value = today();
 elements.summaryWeek.value = currentIsoWeek();
 redrawEditorCanvas();
+loadAuth();
 loadEntries();
