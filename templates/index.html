@@ -159,8 +159,12 @@
               <div class="writing-fields">
                 <label class="field-label" for="entry-title">2. Give today a title</label>
                 <input id="entry-title" class="title-input" placeholder="The long way home" maxlength="80" required>
-                <label class="field-label" for="entry-content">3. Tell the story</label>
-                <textarea id="entry-content" placeholder="What do you want to remember?" maxlength="5000" required></textarea>
+                <div class="story-label-row">
+                  <label class="field-label" for="entry-content">3. Tell the story</label>
+                  <button id="dictate-button" class="dictate-button" type="button" aria-pressed="false">Start dictating</button>
+                </div>
+                <p id="dictation-status" class="dictation-status" aria-live="polite" hidden></p>
+                <textarea id="entry-content" placeholder="What do you want to remember? Type it or say it aloud…" maxlength="5000" required></textarea>
               </div>
             </div>
 

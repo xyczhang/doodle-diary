@@ -1,17 +1,19 @@
 # Doodle Diary
 
-A daily journal where every entry has a hand-drawn cover, a mood, a story, and a gratitude note. Accounts keep entries available across browsers and devices, and an optional OpenAI feature turns one week of entries into a short, gentle reflection.
+A daily journal where every entry has a hand-drawn cover, a mood, a story, and a gratitude note. Accounts keep entries available across browsers and devices, voice dictation can turn speech into journal text, and an optional OpenAI feature turns one week of entries into a short, gentle reflection.
 
 ## Simple technology
 
 - `templates/index.html` — visible page text and structure
 - `app/globals.css` — colors, fonts, layout, and decoration
-- `public/app.js` — drawing, searching, editing, saving, and deleting
+- `public/app.js` — drawing, searching, voice dictation, editing, saving, and deleting
 - `app.py` — Python Flask server and journal API
 - Render PostgreSQL — persistent journal storage when deployed
 - OpenAI API — creates weekly reflections when the reader requests one
 
 There is no React, Next.js, TypeScript, or Tailwind build process. GitHub stores the code, Render runs the Python website and database, and the OpenAI API creates the optional weekly reflection.
+
+The **Start dictating** button uses the browser’s built-in speech-recognition feature to place spoken words in the story field. It does not require another account, API key, Python package, or paid service. Browser support varies, and the person must allow microphone access when prompted.
 
 ## Deploy using GitHub and Render
 

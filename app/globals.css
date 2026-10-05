@@ -644,6 +644,7 @@ textarea {
     font-size: 3.15rem;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior: auto !important;
@@ -2011,6 +2012,60 @@ h1 {
   padding: 10px 18px;
 }
 
+/* Voice dictation */
+.story-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.story-label-row .field-label {
+  margin: 0;
+}
+
+.dictate-button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 13px;
+  color: #182142;
+  background: #fffdf6;
+  border: 2px solid #182142;
+  border-radius: 12px 7px 11px 8px;
+  box-shadow: 3px 3px 0 #a8caca;
+  font:
+    700 0.76rem "Little Doodle",
+    cursive;
+  cursor: pointer;
+}
+
+.dictate-button:hover:not(:disabled) {
+  transform: translateY(-1px) rotate(-1deg);
+}
+
+.dictate-button[aria-pressed="true"] {
+  color: #fffdf6;
+  background: #cc4147;
+  box-shadow: 3px 3px 0 #182142;
+}
+
+.dictate-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.dictation-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  color: #2d64ad;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.dictation-status:not([hidden]) {
+  display: block;
+}
+
 @media (max-width: 560px) {
   .header-actions {
     gap: 7px;
@@ -2025,5 +2080,10 @@ h1 {
 
   .auth-dialog {
     padding: 32px 22px 26px;
+  }
+
+  .story-label-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

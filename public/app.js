@@ -14,6 +14,8 @@ const state = {
   toastTimer: null,
   authMode: "login",
   user: null,
+  recognition: null,
+  dictating: false,
 };
 
 const elements = {
@@ -60,6 +62,8 @@ const elements = {
   authSwitch: document.querySelector("#auth-switch"),
   accountEmail: document.querySelector("#account-email"),
   logoutButton: document.querySelector("#logout-button"),
+  dictateButton: document.querySelector("#dictate-button"),
+  dictationStatus: document.querySelector("#dictation-status"),
 };
 
 function makeUuid() {
@@ -178,6 +182,98 @@ function showToast(message) {
   }, 4500);
 }
 
+function updateDictationUi(message = "") {
+  elements.dictateButton.textContent = state.dictating ? "Stop dictating" : "Start dictating";
+  elements.dictateButton.setAttribute("aria-pressed", String(state.dictating));
+  elements.saveButton.disabled = state.dictating;
+  elements.dictationStatus.textContent = message;
+  elements.dictationStatus.hidden = !message;
+}
+
+function insertDictatedText(text) {
+  const transcript = text.replace(/\s+/g, " ").trim();
+  if (!transcript) return;
+  const field = elements.content;
+  const start = field.selectionStart ?? field.value.length;
+  const end = field.selectionEnd ?? start;
+  const needsLeadingSpace = start > 0 && !/\s/.test(field.value[start - 1]);
+  const addition = `${needsLeadingSpace ? " " : ""}${transcript} `;
+  const available = Math.max(0, Number(field.maxLength) - (field.value.length - (end - start)));
+  field.setRangeText(addition.slice(0, available), start, end, "end");
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function stopDictation() {
+  if (!state.dictating) return;
+  state.dictating = false;
+  if (state.recognition) state.recognition.stop();
+  updateDictationUi("Dictation stopped.");
+}
+
+function setupDictation() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    elements.dictateButton.disabled = true;
+    updateDictationUi("Voice dictation is not supported by this browser.");
+    return;
+  }
+
+  const recognition = new Recognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = navigator.language || "en-US";
+  state.recognition = recognition;
+
+  recognition.onresult = (event) => {
+    let finalText = "";
+    let interimText = "";
+    for (let index = event.resultIndex; index < event.results.length; index += 1) {
+      const transcript = event.results[index][0].transcript;
+      if (event.results[index].isFinal) finalText += transcript;
+      else interimText += transcript;
+    }
+    if (finalText) insertDictatedText(finalText);
+    updateDictationUi(interimText ? `Hearing: ${interimText.trim()}` : "Listening… speak naturally.");
+  };
+
+  recognition.onerror = (event) => {
+    state.dictating = false;
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      updateDictationUi("Microphone access was blocked. Allow it in your browser settings and try again.");
+    } else if (event.error === "no-speech") {
+      updateDictationUi("I didn’t hear anything. Try again when you’re ready.");
+    } else if (event.error !== "aborted") {
+      updateDictationUi("Dictation stopped unexpectedly. Please try again.");
+    }
+  };
+
+  recognition.onend = () => {
+    state.dictating = false;
+    const currentMessage = elements.dictationStatus.textContent;
+    if (!currentMessage || currentMessage.startsWith("Hearing:") || currentMessage.startsWith("Listening")) {
+      updateDictationUi("Dictation stopped.");
+    } else {
+      updateDictationUi(currentMessage);
+    }
+  };
+
+  elements.dictateButton.addEventListener("click", () => {
+    if (state.dictating) {
+      stopDictation();
+      return;
+    }
+    elements.content.focus();
+    state.dictating = true;
+    updateDictationUi("Listening… speak naturally.");
+    try {
+      recognition.start();
+    } catch {
+      state.dictating = false;
+      updateDictationUi("Dictation is already starting. Please try again in a moment.");
+    }
+  });
+}
+
 function updateAuthDisplay() {
   const signedIn = Boolean(state.user);
   elements.authButton.textContent = signedIn ? "Account" : "Sign in";
@@ -266,6 +362,7 @@ async function logout() {
 }
 
 function closeEditor() {
+  stopDictation();
   elements.modal.hidden = true;
   document.body.classList.remove("modal-open");
   state.drawing = false;
@@ -281,6 +378,7 @@ function openNewEntry() {
   elements.dialog.setAttribute("aria-label", "New journal entry");
   elements.deleteButton.hidden = true;
   elements.saveButton.textContent = "Save entry";
+  if (state.recognition) updateDictationUi();
   setMood("okay");
   redrawEditorCanvas();
   elements.modal.hidden = false;
@@ -300,6 +398,7 @@ function openEntry(entry) {
   elements.dialog.setAttribute("aria-label", "Edit journal entry");
   elements.deleteButton.hidden = false;
   elements.saveButton.textContent = "Save changes";
+  if (state.recognition) updateDictationUi();
   setMood(entry.mood || "okay");
   redrawEditorCanvas();
   elements.modal.hidden = false;
@@ -580,9 +679,9 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !elements.modal.hidden) closeEditor();
   if (event.key === "Escape" && !elements.authModal.hidden) closeAuth();
 });
-
 elements.entryDate.value = today();
 elements.summaryWeek.value = currentIsoWeek();
 redrawEditorCanvas();
+setupDictation();
 loadAuth();
 loadEntries();
