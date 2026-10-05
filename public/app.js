@@ -39,6 +39,11 @@ const elements = {
   clear: document.querySelector("#clear-button"),
   toast: document.querySelector("#toast"),
   toastMessage: document.querySelector("#toast-message"),
+  summaryWeek: document.querySelector("#summary-week"),
+  summaryButton: document.querySelector("#summary-button"),
+  summaryOutput: document.querySelector("#summary-output"),
+  summaryMeta: document.querySelector("#summary-meta"),
+  summaryText: document.querySelector("#summary-text"),
 };
 
 function makeUuid() {
@@ -64,6 +69,27 @@ function today() {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   return now.toISOString().slice(0, 10);
+}
+
+function currentIsoWeek() {
+  const now = new Date();
+  const day = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const weekday = day.getUTCDay() || 7;
+  day.setUTCDate(day.getUTCDate() + 4 - weekday);
+  const yearStart = new Date(Date.UTC(day.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((day - yearStart) / 86400000) + 1) / 7);
+  return `${day.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
+function mondayFromIsoWeek(value) {
+  const match = /^(\d{4})-W(\d{2})$/.exec(value || "");
+  if (!match) return null;
+  const year = Number(match[1]);
+  const week = Number(match[2]);
+  const januaryFourth = new Date(Date.UTC(year, 0, 4));
+  const monday = new Date(januaryFourth);
+  monday.setUTCDate(januaryFourth.getUTCDate() - (januaryFourth.getUTCDay() || 7) + 1 + ((week - 1) * 7));
+  return monday.toISOString().slice(0, 10);
 }
 
 async function api(path, options = {}) {
@@ -347,6 +373,32 @@ async function deleteEntry() {
   }
 }
 
+async function makeWeeklySummary() {
+  const weekStart = mondayFromIsoWeek(elements.summaryWeek.value);
+  if (!weekStart) {
+    showToast("Choose a week first.");
+    return;
+  }
+
+  elements.summaryButton.disabled = true;
+  elements.summaryButton.textContent = "Remembering…";
+  try {
+    const data = await api("/api/weekly-summary", {
+      method: "POST",
+      body: JSON.stringify({ weekStart }),
+    });
+    elements.summaryMeta.textContent = `${data.entryCount} ${data.entryCount === 1 ? "entry" : "entries"} · ${data.weekStart} to ${data.weekEnd}`;
+    elements.summaryText.textContent = data.summary;
+    elements.summaryOutput.hidden = false;
+  } catch (error) {
+    elements.summaryOutput.hidden = true;
+    showToast(error.message);
+  } finally {
+    elements.summaryButton.disabled = false;
+    elements.summaryButton.textContent = "Make my reflection";
+  }
+}
+
 elements.canvas.addEventListener("pointerdown", (event) => {
   state.drawing = true;
   elements.canvas.setPointerCapture(event.pointerId);
@@ -400,6 +452,10 @@ elements.closeEditor.addEventListener("click", closeEditor);
 elements.cancel.addEventListener("click", closeEditor);
 elements.form.addEventListener("submit", saveEntry);
 elements.deleteButton.addEventListener("click", deleteEntry);
+elements.summaryButton.addEventListener("click", makeWeeklySummary);
+elements.summaryWeek.addEventListener("change", () => {
+  elements.summaryOutput.hidden = true;
+});
 elements.toast.addEventListener("click", () => {
   clearTimeout(state.toastTimer);
   elements.toast.hidden = true;
@@ -412,5 +468,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 elements.entryDate.value = today();
+elements.summaryWeek.value = currentIsoWeek();
 redrawEditorCanvas();
 loadEntries();
