@@ -22,26 +22,26 @@
       <header class="topbar">
         <a class="brand" href="#" aria-label="Doodle Diary home">
           <span class="brand-mark"><span class="mood-face mood-face-1"></span></span>
-          <span>little doodle</span>
+          <span>Daily Doodle</span>
         </a>
         <label class="search-wrap">
           <span class="search-icon" aria-hidden="true">⌕</span>
           <input id="search-input" type="search" placeholder="Search your days" aria-label="Search entries">
         </label>
         <div class="header-actions">
-          <button id="auth-button" class="auth-button" type="button">Sign in</button>
-          <button id="new-entry-button" class="new-button" type="button"><span class="icon-text">+</span> New entry</button>
+          <button id="auth-button" class="auth-button" type="button">Sign In</button>
+          <button id="new-entry-button" class="new-button" type="button"><span class="icon-text">+</span> New Entry</button>
         </div>
       </header>
 
       <section class="intro">
         <div>
           <p class="eyebrow"><span aria-hidden="true">□</span> your days, drawn by hand</p>
-          <h1>my little<br>doodle diary</h1>
+          <h1>My Little<br>Doodle Diary</h1>
         </div>
         <div class="intro-side">
-          <span class="candy-label">little moments · big feelings</span>
-          <p class="intro-note">Each day gets a page—and a doodle only you could make.</p>
+          <span class="candy-label">little moments · smaller drawings</span>
+          <p class="intro-note">Each day gets a page and personal little doodle </p>
         </div>
       </section>
 
@@ -49,14 +49,14 @@
         <div class="weekly-copy">
           <p class="eyebrow"><span aria-hidden="true">☆</span> your week in words</p>
           <h2 id="weekly-title">A little weekly reflection</h2>
-          <p>Choose a week and turn its diary pages into a gentle recap of the feelings and moments you recorded.</p>
+          <p>Choose a week and get a warm summary of the feelings and moments you recorded.</p>
           <p class="privacy-note">Only that week’s title, writing, mood, and gratitude are sent to OpenAI when you click the button. Your doodles are never sent.</p>
         </div>
         <div class="weekly-action">
-          <label for="summary-week">Week to remember</label>
+          <label for="summary-week">Week to Remember</label>
           <div class="weekly-controls">
             <input id="summary-week" type="week">
-            <button id="summary-button" class="summary-button" type="button">Make my reflection</button>
+            <button id="summary-button" class="summary-button" type="button">Make My Reflection</button>
           </div>
           <div id="summary-output" class="summary-output" aria-live="polite" hidden>
             <span id="summary-meta" class="summary-meta"></span>
@@ -67,11 +67,11 @@
 
       <section class="journal-section" aria-live="polite">
         <div class="section-heading">
-          <h2 id="section-title">Recent pages</h2>
+          <h2 id="section-title">Recent Pages</h2>
           <span id="entry-count">0 entries</span>
         </div>
         <div id="entry-grid" class="entry-grid loading">
-          <div class="empty-state">Opening your journal…</div>
+          <div class="empty-state">Opening Your Journal…</div>
         </div>
       </section>
 
@@ -81,7 +81,7 @@
 
           <div id="auth-signed-out">
             <p class="eyebrow"><span aria-hidden="true">♡</span> keep your pages close</p>
-            <h2 id="auth-heading">Welcome back</h2>
+            <h2 id="auth-heading">Welcome Back</h2>
             <p id="auth-intro">Sign in to find your diary on any browser or device.</p>
             <form id="auth-form">
               <label for="auth-email">Email</label>
@@ -172,7 +172,7 @@
               <button id="delete-button" class="delete-button" type="button" hidden>Delete</button>
               <span class="spacer"></span>
               <button id="cancel-button" class="cancel-button" type="button">Cancel</button>
-              <button id="save-button" class="save-button" type="submit">Save entry</button>
+              <button id="save-button" class="save-button" type="submit">Save Entry</button>
             </div>
           </form>
         </section>
